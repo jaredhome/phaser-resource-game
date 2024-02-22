@@ -10,6 +10,8 @@ const config = {
     type: Phaser.AUTO,
     width: 1024,
     height: 768,
+    pixelArt: true, // crucial for crisp pixel art
+    roundPixels: true, // crucial for crisp pixel art
     parent: 'game-container',
     physics: {
         default: 'arcade',
