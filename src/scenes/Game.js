@@ -1,4 +1,5 @@
 import { Scene } from 'phaser'
+import { GridManager } from '../utils/GridManager.js' // Import the GridManager class
 
 export class Game extends Scene {
     constructor() {
@@ -27,10 +28,13 @@ export class Game extends Scene {
             dirt: 0x8B4513, // Brown
             wood: 0xA52A2A // Reddish-Brown
         }
+
         // Initialize and draw the GRID MANAGER
-        this.gridManager = new GridManager(40, 30, cellTypes, 20)
+        this.gridManager = new GridManager(this, 40, 30, cellTypes, 20) // 'this' refers to the current scene
         this.gridManager.initializeGrid()
         this.gridManager.drawGrid()
+        this.environmentColliders = this.physics.add.staticGroup() // Create a static group for the environment colliders
+        this.gridManager.setCollision(this.environmentColliders) // Set the environment colliders based on the grid
 
         // Create cursor keys for player input
         this.cursors = this.input.keyboard.createCursorKeys()
@@ -56,14 +60,11 @@ export class Game extends Scene {
             let x = Math.floor(worldPoint.x / this.gridManager.gridCellSize)
             let y = Math.floor(worldPoint.y / this.gridManager.gridCellSize)
             // Select the cell under the pointer
-            this.GridManager.selectCell(x, y, this.player.x, this.player.y, this.interactionRange)
+            this.gridManager.selectCell(x, y, this.player.x, this.player.y, this.interactionRange)
         })
 
-        // Create platforms in the game
-        this.createPlatforms()
-
         // Add a physics collider between the player and the platforms
-        this.physics.add.collider(this.player, this.platforms)
+        this.physics.add.collider(this.player, this.environmentColliders)
     }
 
     update() {
@@ -89,6 +90,8 @@ export class Game extends Scene {
 
         // Make the player collide with the world bounds
         player.setCollideWorldBounds(true);
+        player.body.setSize(16, 16, true) // Set the size of player's collider
+        player.body.setOffset(8, 16) // Set the offset of player's collider
 
         // Set the camera to follow the player
         this.cameras.main.startFollow(player);
@@ -116,18 +119,4 @@ export class Game extends Scene {
 
         return player;
     }
-
-    createPlatforms() {
-        this.platforms = this.physics.add.staticGroup()
-
-        for (let y = 0; y < this.gridHeight; y++) {
-            for (let x = 0; x < this.gridWidth; x++) {
-                if (this.grid[y][x] === 'grass') {
-                    let platform = this.platforms.create(x * this.gridCellSize + this.gridCellSize / 2, y * this.gridCellSize + this.gridCellSize / 2, 'empty')
-                    platform.setScale(this.gridCellSize / platform.width).refreshBody()
-                }
-            }
-        }
-    }
-
 }
